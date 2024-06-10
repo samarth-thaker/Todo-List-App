@@ -8,42 +8,185 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final TextEditingController dateController = TextEditingController();
-  Future<void> _selectDate() async {
-    DateTime? _picked = await showDatePicker(
-        context: context, firstDate: DateTime(2024), lastDate: DateTime.now());
-    if (_picked != null) {
-      setState(() {
-        dateController.text = _picked.toString().split(" ")[0];
-      });
-    }
+  final TextEditingController taskController = TextEditingController();
+  final List<String> tasks = [];
+
+  void input(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Enter the task details"),
+          content: TextField(
+            controller: taskController,
+            decoration: const InputDecoration(hintText: "Task details"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  tasks.add(taskController.text);
+                  taskController.clear();
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text("Add"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void input(BuildContext context, String task) {
+  void delete(BuildContext context) {
+    String? selectedTask;
+
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return const AlertDialog(
-            title: Text("Enter the task details"),
-          
-          );
-        });
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Select a task to delete"),
+              content: DropdownButton<String>(
+                hint: const Text("Select Task"),
+                value: selectedTask,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedTask = newValue;
+                  });
+                },
+                items: tasks.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (selectedTask != null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Confirm Deletion"),
+                            content: Text(
+                                "Are you sure you want to delete '$selectedTask'?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    tasks.remove(selectedTask);
+                                  });
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  },
+                  child: const Text("Next"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
         title: const Text("Tasks for today"),
+        foregroundColor: Colors.white,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           children: [
-            SizedBox(
-              height: 30,
+            const SizedBox(height: 30),
+            TextButton(
+              onPressed: () => input(context),
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                    side: const BorderSide(color: Colors.deepPurpleAccent),
+                  ),
+                ),
+              ),
+              child: const Text(
+                "Add task",
+                style: TextStyle(
+                  color: Colors.deepPurple,
+                ),
+              ),
             ),
-            TextButton(onPressed: input, child: Text("Add task")),
-            TextButton(onPressed: delete, child: Text("Delete task")),
+            TextButton(
+              onPressed: () => delete(context),
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                    side: const BorderSide(color: Colors.deepPurpleAccent),
+                  ),
+                ),
+              ),
+              child: const Text(
+                "Delete task",
+                style: TextStyle(
+                  color: Colors.deepPurple,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    child: Card(
+                      elevation: 2,
+                      child: ListTile(
+                        title: Text(
+                          tasks[index],
+                          style: const TextStyle(fontSize: 24.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'signin.dart';
-import 'signup.dart';
 import 'dashboard.dart';
 
 void main() {
@@ -19,11 +17,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SignIn(),
-      routes: {
-        '/dashboard': (context) => DashboardScreen(),
-        '/signup': (context) => SignUp(),
-      },
+      home: const DashboardScreen(),
+      
     );
   }
 }
